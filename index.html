@@ -17,7 +17,7 @@
 </head>
 <body>
 	<noscript>browser not supported, please update</noscript>
-	<div id="error" style="visibility: visible; color:white;font-family: 'Roboto', sans-serif; font-size: 8vw;"> 
+	<div id="unkownError" style="visibility: hidden; color:white;font-family: 'Roboto', sans-serif; font-size: 8vw; z-index: 6; position: Absolute ;"> 
 		<div style="display:inline">An error occured during initialisation. Generally using </div> 
 		<a style="display:inline" href="https://www.mozilla.org/en-US/firefox/new/" target="_blank"> Firefox </a> 
 		<div style = "display:inline; ">will resolve this.</div>
@@ -169,6 +169,12 @@
 		
 		function pollGamepads() {
 			var gamepads = navigator.getGamepads();
+			
+			if(mode == 3){
+				clearInterval(interval);
+				document.getElementById("unkownError").style.visibility = "visible";
+			}
+			
 			if (gamepads.length != 0){
 				domX.forEach(loadOrbValues,orbOutput.x);
 				domY.forEach(loadOrbValues,orbOutput.y);
