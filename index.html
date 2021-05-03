@@ -145,6 +145,8 @@
 			console.log("A gamepad was connected:");
 			console.log("Gamepad Object");
 			console.log(gamepadData);
+			console.log("Gamepad Axes");
+			console.log(gamepadData.axes);
 		});
 		
 		
@@ -192,12 +194,14 @@
 				if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control")){
 					document.getElementById("conDevice").style.visibility = "visible";
 					//document.getElementById("displayHorizontal").style.visibility = "hidden";
+					hideDisplays();
 				}
 			}
 			if(mode == 2){
 				document.getElementById("conDevice").style.visibility = "visible";
 				document.getElementById("serialCon").style.visibility = "hidden";
 				//document.getElementById("displayHorizontal").style.visibility = "hidden";
+				hideDisplays();
 			}
 		});
 		
