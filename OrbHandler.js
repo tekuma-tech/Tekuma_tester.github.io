@@ -1,235 +1,226 @@
-<!DOCTYPE html>
-<html style="background:black">
-<meta charset="UTF-8">
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+var mode = 0; //0 os and browser not supported, 1 use gamepad libary, 2 use serial 
+var ballConnected = false;
+var ball = 0;
+var orbOutput = {x:0,y:0,z:0,rx:0,ry:0,rz:0};  //range -1 to 1;
+var connectedToSerial = function temp(){};
+var disconnectedToSerial = function temp(){};
 
-<head>
-	<title>Tekuma Web Demo Display</title>
-	<link rel="apple-touch-icon" sizes="180x180" href="icon/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="icon/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
-	<link rel="manifest" href="icon/site_webmanifest">
-	<link rel="mask-icon" href="icon/safari-pinned-tab.svg" color="#5bbad5">
-	<meta name="msapplication-TileColor" content="#da532c">
-	<meta name="theme-color" content="#ffffff">
-	<img src="logo.png" alt ="Improving the ways humans interact with technology" style = " width: 40%;"/>
-</head>
-<body>
-	<noscript>browser not supported, please update</noscript>
-	<div id="demo" style="visibility: hidden;">
-		<div id="conDevice" style="width:100%; visibility: hidden; color:white;font-family: 'Roboto', sans-serif; font-size: 2vw; z-index: 0; position: Absolute ;">Please connect and/or move the controller</div>
+window.addEventListener("gamepadconnected", (event) => {
+	if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control")){
+		modeTest();
+		connectToBall();
+	}
+});
+
+function modeTest(){
+	var canUseGame = "getGamepads" in navigator;
+	var canUseSerial = "serial" in navigator;
+	
+	if(!canUseGame && !canUseSerial){
+		mode = 0;
+		return;
+	}
+	//known issue with chrome and windows not retrieving axis information correctly
+	if(navigator.userAgent.includes("Windows") && navigator.userAgent.includes("Chrome")){
+		if(canUseSerial){
+			mode = 2;
+		}
+		else{
+			mode = 0;
+		}
+		return mode;
+	}
+	else if(canUseGame){
+		mode = 1;
+		return 1;
+	}
+	else if(canUseSerial){
+		mode = 2;
+		return 2;
+	}
+}
+
+var firstLoad = true;
+function connectToBall(){
+	switch(mode){
+		case 0:
+			break;
+		case 1:
+			useGamepadAPI();
+			break;
+		case 2:
+			if(!firstLoad){
+				loadConnectStatement();
+			}
+			break;
+		default:
+			break;
+	}
+	firstLoad = false;
+}
+
+var scanner;
+
+function useGamepadAPI(){
+	console.log("Using Gamepad API for demo");
+	var gamePads = navigator.getGamepads();
+	
+	for(var i = 0; i < gamePads.length; i++){
+		if(gamePads[i].id.includes("Tekuma") || gamePads[i].id.includes("ROV Control")){
+			ball = gamePads[i];
+			ballConnected = true;
+			i = gamePads.length;
+			
+		}
+	}
+	
+	if(ball == 0){
+		return;
+	}
+	
+	//start going the thing
+	scanner = setInterval(gamepadConversion,5);
+	
+	window.addEventListener("gamepaddisconnected", (event) => {
+		if(event.gamepad.id.includes("Tekuma")){
+			//stop doing the thing
+			clearInterval(scanner);
+			ballConnected = false;
+		}
+	});
+}
+
+function gamepadConversion(){
+	if(ballConnected){
+		orbOutput.x = convertAxisToPercent(ball.axes[0]);
+		orbOutput.y = convertAxisToPercent(ball.axes[1]);
+		orbOutput.z = convertAxisToPercent(ball.axes[2]);
+		orbOutput.rx = convertAxisToPercent(ball.axes[3]);
+		orbOutput.ry = convertAxisToPercent(ball.axes[4]);
+		orbOutput.rz = convertAxisToPercent(ball.axes[5]);
+	}	
+	else{
+		orbOutput.x = 0;
+		orbOutput.y = 0;
+		orbOutput.z = 0;
+		orbOutput.rx = 0;
+		orbOutput.ry = 0;
+		orbOutput.rz = 0;
+	}
+}
+
+function loadConnectStatement(){
+	//todo, tell user they serial port must be used in this case
+	//or not to do?
+	
+	//this is temp
+	connectWithSerial();
+}
+
+const filtersSerail = [{usbVendorId: 0x03EB, usbProductId: 0x2062}];
+var port;
+
+var lineReader;
+var reader;
+var serialScanner;
+
+function connectWithSerial(){
+	
+	promisedPort = navigator.serial.requestPort({filters: filtersSerail});
+	
 		
-		<div id="serialCon" style="visibility: hidden; color:black;font-family: 'Roboto', sans-serif; font-size: 4vw; z-index: 3; position: Absolute ;" >
-			<button style="color:black;font-family: 'Roboto', sans-serif; font-size: 2vw;" onclick=connectToBall()>
-			<div>Click here to connect to device</div>
-			</button>
-			<div style="color:white ;font-family: 'Roboto', sans-serif; font-size: 1vw;">Due to a known bug with the combination of Windows and Chrome a serial connection needs to be used instead of the HID gamepad library.</div>
-			<div style="color:white ;font-family: 'Roboto', sans-serif; font-size: 1vw;"></div>
-			<div style="color:white ;font-family: 'Roboto', sans-serif; font-size: 1vw;">
-				<div style="display:inline">If this is an issue please use</div> 
-				<a style="display:inline" href="https://www.mozilla.org/en-US/firefox/new/" target="_blank"> Firefox </a>
-				<div style="display:inline">or another OS such as Linux, Android or OSX.</div>
-			</div>
-		</div>
-
-
-		<table id = "displayHorizontal" style="width:100%; visibility: hidden; color:white; font-size: 5vw; z-index: 2; position: Absolute ;">
-			<tr>
-				<th style="width:33%">
-					<div style="display:inline;vertical-align: middle; font-family: 'Roboto';">X : </div>
-					<div name="X" style="display:inline; vertical-align: middle; font-family: 'Roboto';">0.0</div>
-				</th>
-
-				<th style="width:33%">
-					<div style="display:inline;vertical-align: middle; font-family: 'Roboto';">Y : </div>
-					<div name="Y" style="display:inline; vertical-align: middle; font-family: 'Roboto';">0.0</div>
-				</th>
-
-				<th style="width:33%">
-					<div style="display:inline;vertical-align: middle; font-family: 'Roboto';">Z : </div>
-					<div name="Z" style="display:inline; vertical-align: middle; font-family: 'Roboto';">0.0</div>
-				</th>
-				</th>
-			</tr>
-			<tr>
-				<th style="width:33%">
-					<div style="display:inline;vertical-align: middle; font-family: 'Roboto';">RX : </div>
-					<div name="RX" style="display:inline; vertical-align: middle; font-family: 'Roboto';">0.0</div>
-				</th>
-
-				<th style="width:33%">
-					<div style="display:inline;vertical-align: middle; font-family: 'Roboto';">RY : </div>
-					<div name="RY" style="display:inline; vertical-align: middle; font-family: 'Roboto';">0.0</div>
-				</th>
-
-				<th style="width:33%; vertical-align: middle;">
-					<div style="display:inline; font-family: 'Roboto';">RZ : </div>
-					<div name="RZ" style="display:inline;  font-family: 'Roboto';">0.0</div>
-				</th>
-			</tr>
-		</table>
-
-		<table id = "displayVertical" style="width:100%; visibility: hidden; color:white; font-size: 7.5vw; z-index: 1; position: Absolute ;">
-			<tr>
-				<th style="width:50%; vertical-align: middle;">
-					<div style="display:inline; font-family: 'Roboto';">X : </div>
-					<div name="X" style="display:inline; font-family: 'Roboto';">0.0</div>
-				</th>
-				<th style="width:50%; vertical-align: middle;">
-					<div style="display:inline;vertical-align: middle; font-family: 'Roboto';">RX : </div>
-					<div name="RX" style="display:inline; vertical-align: middle; font-family: 'Roboto';">0.0</div>
-				</th>
-			</tr>
-			<tr>
-				<th style="width:50%; vertical-align: middle;">
-					<div style="display:inline;font-family: 'Roboto';">Y : </div>
-					<div name="Y" style="display:inline; vertical-align: middle; font-family: 'Roboto';">0.0</div>
-				</th>
-				<th style="width:50%; vertical-align: middle;">
-					<div style="display:inline;font-family: 'Roboto';">RY : </div>
-					<div name="RY" style="display:inline; vertical-align: middle; font-family: 'Roboto';">0.0</div>
-				</th>
-			</tr>
-			<tr>
-				<th style="width:50%; vertical-align: middle;">
-					<div style="display:inline; font-family: 'Roboto';">Z : </div>
-					<div name="Z" style="display:inline;  font-family: 'Roboto';">0.0</div>
-				</th>
-				<th style="width:50%; vertical-align: middle;">
-					<div style="display:inline; font-family: 'Roboto';">RZ : </div>
-					<div name="RZ" style="display:inline; font-family: 'Roboto';">0.0</div>
-				</th>
+	promisedPort.then(
+		(successMessage) => {
+			console.log("Device connected over serial port");
+			port = successMessage;
+			var connection = port.open({baudRate:9600});
+			connection.then(
+				(successMessage) => {
+					reader = port.readable.getReader();
+					ballConnected = true;
+					connectedToSerial();
+					serialRead();
 				
-			</tr>
-		</table>
-	</div>
-
-
-
-
-	<script src="OrbHandler.js"></script>
-
-	<script>
-		
-		var mode = modeTest();
-		
-		if(mode == 1){
-			document.getElementById("conDevice").style.visibility = "visible";
-		}
-		else if(mode == 2){
-			document.getElementById("conDevice").style.visibility = "visible";
-		}
-		
-		document.getElementById("demo").style.visibility = "visible";
-		
-		function serialConnected(){
-			document.getElementById("serialCon").style.visibility = "hidden";
-			//document.getElementById("displayHorizontal").style.visibility = "visible";
-			showDisplay();
-		}
-		
-		function serialDisonnected(){
-			//document.getElementById("displayHorizontal").style.visibility = "hidden";
-			//document.getElementById("displayVertical").style.visibility = "hidden";
-			hideDisplays();
-			document.getElementById("conDevice").style.visibility = "visible";
-		}
-		
-		connectedToSerial = serialConnected;
-		
-		disconnectedToSerial = serialDisonnected;
-		
-		window.addEventListener("gamepadconnected", (event) => {
-			gamepadData = event.gamepad;
-			console.log("A gamepad was connected:");
-			console.log("Gamepad Object");
-			console.log(gamepadData);
-		});
-		
-		
-		var numberFormat = new Intl.NumberFormat(navigator.language,{minimumIntegerDigits:1,minimumFractionDigits:1,maximumFractionDigits:1});
-		var domX = document.getElementsByName("X");
-		var domY = document.getElementsByName("Y");
-		var domZ = document.getElementsByName("Z");
-		var domRX = document.getElementsByName("RX");
-		var domRY = document.getElementsByName("RY");
-		var domRZ = document.getElementsByName("RZ");
-		
-		function loadOrbValues(object, index, array){
-			object.innerHTML = numberFormat.format(this*100);
-		}
-		
-		function pollGamepads() {
-			var gamepads = navigator.getGamepads();
-			if (gamepads.length != 0){
-				domX.forEach(loadOrbValues,orbOutput.x);
-				domY.forEach(loadOrbValues,orbOutput.y);
-				domZ.forEach(loadOrbValues,orbOutput.z);
-				domRX.forEach(loadOrbValues,orbOutput.rx);
-				domRY.forEach(loadOrbValues,orbOutput.ry);
-				domRZ.forEach(loadOrbValues,orbOutput.rz);
-			}
-		}
-		
-		interval = setInterval(pollGamepads, 10);
-		
-		window.addEventListener("gamepadconnected", (event) => {
-			if(mode == 1){
-				if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control")){
-					document.getElementById("conDevice").style.visibility = "hidden";
-					//document.getElementById("displayHorizontal").style.visibility = "visible";
-					showDisplay();
+				},
+				(failMessage) => {
+					ballConnected = false;
+					window.alert("This device is already being used somewhere else");
+					console.log("Device failed to connect");
 				}
-			}
-			else if(mode == 2){
-				document.getElementById("serialCon").style.visibility = "visible";
-				document.getElementById("conDevice").style.visibility = "hidden";
-			}
-		});
-		window.addEventListener("gamepaddisconnected", (event) => {
-			if(mode == 1){
-				if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control")){
-					document.getElementById("conDevice").style.visibility = "visible";
-					//document.getElementById("displayHorizontal").style.visibility = "hidden";
-				}
-			}
-			if(mode == 2){
-				document.getElementById("conDevice").style.visibility = "visible";
-				document.getElementById("serialCon").style.visibility = "hidden";
-				//document.getElementById("displayHorizontal").style.visibility = "hidden";
-			}
-		});
+			);
+		},
+		(failMessage) => {
+			ballConnected = false;
+			window.alert("You did not select a device");
+			console.log("Failed to find or connect to device");
+	}
+	);
 		
-		window.matchMedia("(orientation: landscape)").addListener(showDisplay);
+}
+
+var passingArray = [];
+
+var d = new Date();
+var pastTime = d.getTime();
+
+function serialRead(){
+
+	try {
+		const string = reader.read();
+		string.then(
+			(successMessage) => {
+				var tempArray = successMessage.value;
+				tempArray.forEach(appendNewData);
+				if(port.readable){
+					serialRead();
+				}
+				
+				passSerialToBallData();
+			},
+			(failMessage) => {
+				ballConnected = false;
+				disconnectedToSerial();
+				console.log("Device has either been disconnected or an error occured");
+			}		
+		);
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+function appendNewData(data, index, array){
+	passingArray.push(data);
+}
+
+function convertAxisToPercent(axis){
+	var ax = Math.round((axis)*10000)/10000;
+	if(ax < 0.005 && ax > -0.005){
+		ax = 0;
+	}
+	return ax;
+}
+
+function passSerialToBallData(){
+	while(passingArray.length >= 13){
 		
-		function showDisplay(){
-			if(ballConnected){
-				if(window.matchMedia("(orientation: landscape)").matches){
-					showHorizontalDisplay();
-				}
-				else{
-					showVerticalDisplay();
-				}
+		var splitArray = new Uint8Array(13);
+		for(var i = 0; i < 13; i++){
+			splitArray[i] = passingArray.shift();
+		}	
+		var convertArray = new Int16Array(6);
+		if(splitArray[12] == 0){
+			for(var i = 0; i < 12; i += 2){
+				convertArray[i/2] = (splitArray[i+1]<<8) + splitArray[i];
 			}
-		}
-		
-		function showHorizontalDisplay(){
-			document.getElementById("displayHorizontal").style.visibility = "visible";
-			document.getElementById("displayVertical").style.visibility = "hidden";
 		}	
 		
-		function showVerticalDisplay(){
-			document.getElementById("displayHorizontal").style.visibility = "hidden";
-			document.getElementById("displayVertical").style.visibility = "visible";
-		}
-		
-		function hideDisplays(){
-			document.getElementById("displayHorizontal").style.visibility = "hidden";
-			document.getElementById("displayVertical").style.visibility = "hidden";
-		}
-		
-	</script>
 
-</body>
-</html>
+		orbOutput.x = convertAxisToPercent(convertArray[0]/32766);
+		orbOutput.y = convertAxisToPercent(convertArray[1]/32766);
+		orbOutput.z = convertAxisToPercent(convertArray[2]/32766);
+		orbOutput.rx = convertAxisToPercent(convertArray[3]/32766);
+		orbOutput.ry = convertAxisToPercent(convertArray[4]/32766);
+		orbOutput.rz = convertAxisToPercent(convertArray[5]/32766);
+	}
+}
+
