@@ -1,4 +1,4 @@
-var mode = 0; //0 os and browser not supported, 1 use gamepad libary, 2 use serial 
+var mode = 0; //0 os and browser not supported, 1 use gamepad libary, 2 use serial , 3 failed state mainly due to google not following standards....
 var ballConnected = false;
 var ball = 0;
 var orbOutput = {x:0,y:0,z:0,rx:0,ry:0,rz:0};  //range -1 to 1;
@@ -76,6 +76,12 @@ function useGamepadAPI(){
 			ball = gamePads[i];
 			ballConnected = true;
 			i = gamePads.length;
+			
+			(ball.axes.length != 6){
+				mode = 3;
+				ballConnected = false;
+			}
+			
 			
 		}
 	}
