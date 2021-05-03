@@ -1,0 +1,83 @@
+
+
+<!DOCTYPE html>
+<html>
+<body>
+
+
+<p id="demo">0</p>
+
+<script src="OrbHandler.js"></script>
+
+<script>
+		
+	/*[Exposed=Window, SecureContext]
+	interface Gamepad {
+	  readonly attribute DOMString id;
+	  readonly attribute long index;
+	  readonly attribute boolean connected;
+	  readonly attribute DOMHighResTimeStamp timestamp;
+	  readonly attribute GamepadMappingType mapping;
+	  readonly attribute FrozenArray<double> axes;
+	  readonly attribute FrozenArray<GamepadButton> buttons;
+	};
+	
+	[Exposed=Window]
+	partial interface Navigator {
+	  sequence<Gamepad?> getGamepads();
+	};*/
+
+	
+	function canGame() {
+        return "getGamepads" in navigator;
+    }
+	
+	window.addEventListener("gamepadconnected", (event) => {
+	  joystick_data = event.gamepad;
+		console.log("A gamepad was connected:");
+		console.log("joystick_data");
+		console.log(joystick_data);
+		console.log("joystick.data.id");
+		console.log(joystick_data.id);
+		console.log("joystick_data.buttons");
+		console.log(joystick_data.buttons);
+		console.log("joystick_data.axis");
+		console.log(joystick_data.axes);
+		//get_gamepad_data();
+	});
+	
+	window.onload = function test(){
+		var gamepads = navigator.getGamepads();
+		if (gamepads.length != 0){
+			document.getElementById("demo").innerHTML = gamepads[0];
+		}
+	};
+
+var numberFormat = new Intl.NumberFormat(navigator.language,{minimumIntegerDigits:3,minimumFractionDigits:1,maximumFractionDigits:1});
+		
+	function pollGamepads() {
+		var gamepads = navigator.getGamepads();
+		if (gamepads.length != 0){
+			//console.log(gamepads[0].axes);
+			document.getElementById("demo").innerHTML = 
+			'x:' + numberFormat.format(orbOutput.x*100) + 
+			'   y:' + numberFormat.format(orbOutput.y*100) + 
+			'   z:' + numberFormat.format(orbOutput.z*100) + 
+			'   ry:' + numberFormat.format(orbOutput.rx*100) + 
+			'   rx:' + numberFormat.format(orbOutput.ry*100) + 
+			'   rz:' + numberFormat.format(orbOutput.rz*100)
+			;
+		}
+		//console.log(navigator.usb.getDevices());
+	}
+	
+	if (!('ongamepadconnected' in window)) {
+		// No gamepad events available, poll instead.
+		interval = setInterval(pollGamepads, 50);
+	}
+	
+	
+</script>
+
+</body>
+</html>
