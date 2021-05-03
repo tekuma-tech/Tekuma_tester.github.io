@@ -103,12 +103,11 @@ function gamepadConversion(){
 		orbOutput.ry = 0;
 		orbOutput.rz = 0;
 	}
-	//console.log(orbOutput);
 }
 
 function loadConnectStatement(){
 	//todo, tell user they serial port must be used in this case
-	
+	//or not to do?
 	
 	//this is temp
 	connectWithSerial();
@@ -131,7 +130,6 @@ function connectWithSerial(){
 			console.log("Device connected over serial port");
 			port = successMessage;
 			var connection = port.open({baudRate:9600});
-			//serialScanner = setInterval(passSerialToBallData,1);
 			connection.then(
 				(successMessage) => {
 					reader = port.readable.getReader();
@@ -178,7 +176,7 @@ function serialRead(){
 			}		
 		);
 	} catch (error) {
-		//console.log(e);
+		console.log(error);
 	}
 }
 
@@ -215,8 +213,6 @@ function passSerialToBallData(){
 		orbOutput.rx = convertAxisToPercent(convertArray[3]/32766);
 		orbOutput.ry = convertAxisToPercent(convertArray[4]/32766);
 		orbOutput.rz = convertAxisToPercent(convertArray[5]/32766);
-		//console.log(splitArray);		
-		//console.log(convertArray);
 	}
 }
 
