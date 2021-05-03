@@ -133,19 +133,21 @@ function connectWithSerial(){
 			connection.then(
 				(successMessage) => {
 					reader = port.readable.getReader();
+					ballConnected = true;
 					connectedToSerial();
 					serialRead();
 				
 				},
 				(failMessage) => {
 					disconnectedToSerial();
-					console.log("Device has either been disconnected or an error occured");
+					ballConnected = false;
+					console.log("Device failed to connect");
 				}
 			);
 		},
 		(failMessage) => {
-			disconnectedToSerial();
-			console.log("Device has either been disconnected or an error occured");
+			ballConnected = false;
+			console.log("Failed to find or connect to device");
 	}
 	);
 		
@@ -171,6 +173,7 @@ function serialRead(){
 				passSerialToBallData();
 			},
 			(failMessage) => {
+				ballConnected = false;
 				disconnectedToSerial();
 				console.log("Device has either been disconnected or an error occured");
 			}		
