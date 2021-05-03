@@ -77,7 +77,7 @@ function useGamepadAPI(){
 			ballConnected = true;
 			i = gamePads.length;
 			
-			(ball.axes.length != 6){
+			if (ball.axes.length != 6){
 				mode = 3;
 				ballConnected = false;
 			}
