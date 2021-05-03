@@ -2,6 +2,8 @@ var mode = 0; //0 os and browser not supported, 1 use gamepad libary, 2 use seri
 var ballConnected = false;
 var ball = 0;
 var orbOutput = {x:0,y:0,z:0,rx:0,ry:0,rz:0};  //range -1 to 1;
+var connectedToSerial = function temp(){};
+var disconnectedToSerial = function temp(){};
 
 window.addEventListener("gamepadconnected", (event) => {
 	if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control")){
@@ -120,21 +122,34 @@ var reader;
 var serialScanner;
 
 function connectWithSerial(){
+	
 	promisedPort = navigator.serial.requestPort({filters: filtersSerail});
 	
 		
-	promisedPort.then((successMessage) => {
-		console.log("Yay! " + successMessage)
-		port = successMessage;
-		var connection = port.open({baudRate:9600});
-		//serialScanner = setInterval(passSerialToBallData,1);
-		connection.then((successMessage) => {
-			reader = port.readable.getReader();
-			serialRead();
-			
-		});
-	});
-	
+	promisedPort.then(
+		(successMessage) => {
+			console.log("Device connected over serial port");
+			port = successMessage;
+			var connection = port.open({baudRate:9600});
+			//serialScanner = setInterval(passSerialToBallData,1);
+			connection.then(
+				(successMessage) => {
+					reader = port.readable.getReader();
+					connectedToSerial();
+					serialRead();
+				
+				},
+				(failMessage) => {
+					disconnectedToSerial();
+					console.log("Device has either been disconnected or an error occured");
+				}
+			);
+		},
+		(failMessage) => {
+			disconnectedToSerial();
+			console.log("Device has either been disconnected or an error occured");
+	}
+	);
 		
 }
 
@@ -147,17 +162,23 @@ function serialRead(){
 
 	try {
 		const string = reader.read();
-		string.then((successMessage) => {
-			var tempArray = successMessage.value;
-			tempArray.forEach(appendNewData);
-			if(port.readable){
-				serialRead();
-			}
-			
-			passSerialToBallData();
-		});
+		string.then(
+			(successMessage) => {
+				var tempArray = successMessage.value;
+				tempArray.forEach(appendNewData);
+				if(port.readable){
+					serialRead();
+				}
+				
+				passSerialToBallData();
+			},
+			(failMessage) => {
+				disconnectedToSerial();
+				console.log("Device has either been disconnected or an error occured");
+			}		
+		);
 	} catch (error) {
-		// Handle |error|...
+		//console.log(e);
 	}
 }
 
