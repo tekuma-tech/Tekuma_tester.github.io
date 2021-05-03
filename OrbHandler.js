@@ -8,6 +8,7 @@ var disconnectedToSerial = function temp(){};
 window.addEventListener("gamepadconnected", (event) => {
 	if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control")){
 		modeTest();
+		clearFirstLoad();
 		connectToBall();
 	}
 });
@@ -41,6 +42,7 @@ function modeTest(){
 }
 
 var firstLoad = true;
+
 function connectToBall(){
 	switch(mode){
 		case 0:
@@ -57,6 +59,10 @@ function connectToBall(){
 			break;
 	}
 	firstLoad = false;
+}
+
+function clearFirstLoad(){
+	firstLoad = true;
 }
 
 var scanner;
