@@ -172,6 +172,9 @@
 			
 			if(mode == 3){
 				clearInterval(interval);
+				hideDisplays();
+				document.getElementById("serialCon").style.visibility = "hidden";
+				document.getElementById("conDevice").style.visibility = "hidden";
 				document.getElementById("unkownError").style.visibility = "visible";
 			}
 			
