@@ -45,6 +45,8 @@ function modeTest(){
 		mode = 2;
 		return 2;
 	}
+	
+	return 0;
 }
 
 var firstLoad = true;
