@@ -177,7 +177,7 @@
 		function pollGamepads() {
 			var gamepads = navigator.getGamepads();
 			
-			if(mode == 3){
+			if(mode == -1){
 				clearInterval(interval);
 				hideDisplays();
 				document.getElementById("serialCon").style.visibility = "hidden";
@@ -195,8 +195,9 @@
 			}
 		}
 		
-		interval = setInterval(pollGamepads, 10);
-		
+		if(mode > 0){
+			interval = setInterval(pollGamepads, 10);
+		}
 		window.addEventListener("gamepadconnected", (event) => {
 			if(mode == 1){
 				if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control")){
