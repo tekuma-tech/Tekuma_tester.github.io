@@ -1,4 +1,4 @@
-var mode = 0; //0 os and browser not supported, 1 use gamepad libary, 2 use serial , 3 failed state mainly due to google not following standards....
+var mode = 0; //0 os and browser not supported, 1 use gamepad libary, 2 use serial , -1 failed state mainly due to google not following standards....
 var ballConnected = false;
 var ball = 0;
 var orbOutput = {x:0,y:0,z:0,rx:0,ry:0,rz:0};  //range -1 to 1;
@@ -13,17 +13,23 @@ window.addEventListener("gamepadconnected", (event) => {
 	}
 });
 
+function canUseGame(){
+	return ("getGamepads" in navigator) && !(navigator.userAgent.includes("Android"));
+}
+
+function canUseSerial(){
+	return "serial" in navigator;
+}
+
 function modeTest(){
-	var canUseGame = ("getGamepads" in navigator) && !(navigator.userAgent.includes("Android"));
-	var canUseSerial = "serial" in navigator;
 	
-	if(!canUseGame && !canUseSerial){
+	if(!canUseGame() && !canUseSerial()){
 		mode = 0;
 		return;
 	}
 	//known issue with chrome and windows not retrieving axis information correctly
 	if(navigator.userAgent.includes("Windows") && navigator.userAgent.includes("Chrome")){
-		if(canUseSerial){
+		if(canUseSerial()){
 			mode = 2;
 		}
 		else{
@@ -31,11 +37,11 @@ function modeTest(){
 		}
 		return mode;
 	}
-	else if(canUseGame){
+	else if(canUseGame()){
 		mode = 1;
 		return 1;
 	}
-	else if(canUseSerial){
+	else if(canUseSerial()){
 		mode = 2;
 		return 2;
 	}
@@ -78,7 +84,7 @@ function useGamepadAPI(){
 			i = gamePads.length;
 			
 			if (ball.axes.length != 6){
-				mode = 3;
+				mode = -1;
 				ballConnected = false;
 			}
 			
