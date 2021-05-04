@@ -25,28 +25,24 @@ function modeTest(){
 	
 	if(!canUseGame() && !canUseSerial()){
 		mode = 0;
-		return;
 	}
 	//known issue with chrome and windows not retrieving axis information correctly
-	if(navigator.userAgent.includes("Windows") && navigator.userAgent.includes("Chrome")){
+	else if(navigator.userAgent.includes("Windows") && navigator.userAgent.includes("Chrome")){
 		if(canUseSerial()){
 			mode = 2;
 		}
 		else{
 			mode = 0;
 		}
-		return mode;
 	}
 	else if(canUseGame()){
 		mode = 1;
-		return 1;
 	}
 	else if(canUseSerial()){
 		mode = 2;
-		return 2;
 	}
 	
-	return 0;
+	return mode;
 }
 
 var firstLoad = true;
