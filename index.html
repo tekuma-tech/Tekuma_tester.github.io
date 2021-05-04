@@ -21,7 +21,10 @@
 		<div style="display:inline">An error occured during initialisation. Generally using </div> 
 		<a style="display:inline" href="https://www.mozilla.org/en-US/firefox/new/" target="_blank"> Firefox </a> 
 		<div style = "display:inline; ">will resolve this.</div>
-		</div>
+	</div>
+		
+	<div id="unsupported" style="visibility: hidden; color:white;font-family: 'Roboto', sans-serif; font-size: 8vw; z-index: 6; position: Absolute ;"> This browser is unsupported. Please use another browser</div>
+	
 	<div id="demo" style="visibility: hidden;">
 		<div id="conDevice" style="width:100%; visibility: hidden; color:white;font-family: 'Roboto', sans-serif; font-size: 2vw; z-index: 0; position: Absolute ;">Please connect and/or move the controller</div>
 		
@@ -119,7 +122,10 @@
 		
 		var mode = modeTest();
 		
-		if(mode == 1){
+		if(mode == 0){
+			document.getElementById("unsupported").style.visibility = "visible";
+		}
+		else if(mode == 1){
 			document.getElementById("conDevice").style.visibility = "visible";
 		}
 		else if(mode == 2){
