@@ -6,7 +6,7 @@ var connectedToSerial = function temp(){};
 var disconnectedToSerial = function temp(){};
 
 window.addEventListener("gamepadconnected", (event) => {
-	if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control")){
+	if(event.gamepad.id.includes("Tekuma")){// || event.gamepad.id.includes("ROV Control")){
 		modeTest();
 		clearFirstLoad();
 		connectToBall();
@@ -76,7 +76,7 @@ function useGamepadAPI(){
 	var gamePads = navigator.getGamepads();
 	
 	for(var i = 0; i < gamePads.length; i++){
-		if(gamePads[i].id.includes("Tekuma") || gamePads[i].id.includes("ROV Control")){
+		if(gamePads[i].id.includes("Tekuma")){// || gamePads[i].id.includes("ROV Control")){
 			ball = gamePads[i];
 			ballConnected = true;
 			i = gamePads.length;
