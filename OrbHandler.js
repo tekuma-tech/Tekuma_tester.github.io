@@ -76,7 +76,8 @@ function useGamepadAPI(){
 	var gamePads = navigator.getGamepads();
 	
 	for(var i = 0; i < gamePads.length; i++){
-		if(gamePads[i].id.includes("Tekuma") || gamePads[i].id.includes("ROV Control")  || event.gamepad.id.includes("EMU")){
+		if(gamePads[i].id.includes("Tekuma") || gamePads[i].id.includes("ROV Control")  || gamePads[i].id.includes("EMU")){
+			console.log("Valid Controller found");
 			ball = gamePads[i];
 			ballConnected = true;
 			i = gamePads.length;
@@ -85,8 +86,6 @@ function useGamepadAPI(){
 				mode = -1;
 				ballConnected = false;
 			}
-			
-			
 		}
 	}
 	
@@ -95,11 +94,17 @@ function useGamepadAPI(){
 	}
 	
 	//start going the thing
+	console.log("Start demo");
 	scanner = setInterval(gamepadConversion,5);
+	document.getElementById("conDevice").style.visibility = "hidden";
+	document.getElementById("displayHorizontal").style.visibility = "visible";
 	
 	window.addEventListener("gamepaddisconnected", (event) => {
-		if(event.gamepad.id.includes("Tekuma")){
+		if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control")  || event.gamepad.id.includes("EMU")){
 			//stop doing the thing
+			console.log("Stop demo");
+			document.getElementById("displayHorizontal").style.visibility = "hidden";
+			document.getElementById("conDevice").style.visibility = "visible";
 			clearInterval(scanner);
 			ballConnected = false;
 		}
@@ -108,12 +113,12 @@ function useGamepadAPI(){
 
 function gamepadConversion(){
 	if(ballConnected){
-		orbOutput.x = convertAxisToPercent(ball.axes[0]);
-		orbOutput.y = convertAxisToPercent(ball.axes[1]);
-		orbOutput.z = convertAxisToPercent(ball.axes[2]);
-		orbOutput.rx = convertAxisToPercent(ball.axes[3]);
-		orbOutput.ry = convertAxisToPercent(ball.axes[4]);
-		orbOutput.rz = convertAxisToPercent(ball.axes[5]);
+		orbOutput.x = convertAxisToPercent(Math.pow(ball.axes[0],3));
+		orbOutput.y = convertAxisToPercent(Math.pow(ball.axes[1],3));
+		orbOutput.z = convertAxisToPercent(Math.pow(ball.axes[2],3));
+		orbOutput.rx = convertAxisToPercent(Math.pow(ball.axes[3],3));
+		orbOutput.ry = convertAxisToPercent(Math.pow(ball.axes[4],3));
+		orbOutput.rz = convertAxisToPercent(Math.pow(ball.axes[5],3));
 	}	
 	else{
 		orbOutput.x = 0;
@@ -210,7 +215,7 @@ function appendNewData(data, index, array){
 
 function convertAxisToPercent(axis){
 	var ax = Math.round((axis)*10000)/10000;
-	if(ax < 0.005 && ax > -0.005){
+	if(ax < 0.01 && ax > -0.01){
 		ax = 0;
 	}
 	return ax;
