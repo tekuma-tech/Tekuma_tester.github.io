@@ -6,7 +6,7 @@ var connectedToSerial = function temp(){};
 var disconnectedToSerial = function temp(){};
 
 window.addEventListener("gamepadconnected", (event) => {
-	if(event.gamepad.id.includes("Tekuma")) || event.gamepad.id.includes("ROV Control") || event.gamepad.id.includes("EMU")){
+	if(event.gamepad.id.includes("Tekuma") || event.gamepad.id.includes("ROV Control") || event.gamepad.id.includes("EMU")){
 		modeTest();
 		clearFirstLoad();
 		connectToBall();
